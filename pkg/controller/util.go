@@ -933,7 +933,11 @@ func CreateCDIConfig(client kubernetes.Interface, cdiClient clientset.Interface,
 	config, err := cdiClient.CdiV1alpha1().CDIConfigs(ns).Create(cfg)
 	if err != nil {
 		if k8serrors.IsAlreadyExists(err) {
-			config, err = cdiClient.CdiV1alpha1().CDIConfigs(ns).Update(cfg)
+			// A workaround for k8s-1.11 behavior for returning an object with empty fields.
+			if config.Name == ""{
+				config = cfg
+			}
+			config, err = cdiClient.CdiV1alpha1().CDIConfigs(ns).Update(config)
 			if err != nil {
 				return nil, errors.Wrap(err, "Error updating CDI Config")
 			}
